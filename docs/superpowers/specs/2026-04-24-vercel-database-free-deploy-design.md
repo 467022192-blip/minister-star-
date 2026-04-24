@@ -158,6 +158,17 @@
 - 这些写入将进入内存仓库。
 - 单实例生命周期内可用，但不保证跨实例、跨重启、跨重部署持久。
 
+需要明确接受的退化行为：
+
+- 轻测试提交后再跳转到 `/chart?quizSessionId=...` 的承接链路，在不同请求落到不同实例时，可能读不到刚才写入的 quiz session。
+- 命盘提交后再访问 `/result/[sessionId]`、`/share/[sessionId]`、`/api/share-card/[sessionId]` 这类依赖先写后读的链路，在不同请求落到不同实例时，可能返回未找到。
+
+因此，本次“无数据库可部署”的含义是：
+
+- 首页、说明页、静态展示页、表单页面本身可以正常访问。
+- 单请求内完成的服务端计算可以正常执行。
+- 依赖跨请求读取内存 session 的结果页/分享页链路不保证稳定可用，这属于当前版本接受的已知退化。
+
 不受影响的行为：
 
 - 不依赖数据库的页面渲染。
@@ -170,6 +181,12 @@ README 的部署说明需要与新现实保持一致：
 - 当前支持“无数据库先部署”。
 - 若需启用持久化，默认只要配置 `DATABASE_URL` 即可自动走 Prisma；若需要强制控制，也可以额外设置 `ZIWEI_PERSISTENCE_MODE`。
 - Prisma 迁移从“每次部署自动执行”改为“接入数据库时手动执行”。
+
+无数据库首发时，README 和部署步骤需要明确：
+
+- Vercel 中不要保留 `ZIWEI_PERSISTENCE_MODE=prisma`。
+- 为避免历史配置影响，首发阶段推荐显式设置 `ZIWEI_PERSISTENCE_MODE=memory`，或确保该变量未设置。
+- 在未接数据库前，不应同时存在 `ZIWEI_PERSISTENCE_MODE=prisma` 且缺少 `DATABASE_URL` 的环境状态。
 
 ## 错误处理
 
@@ -192,21 +209,31 @@ README 的部署说明需要与新现实保持一致：
 
 1. 在干净环境中重新安装依赖，确认 `package-lock.json` 不再引用 `bnpm.byted.org`。
 2. 在未设置 `DATABASE_URL` 的前提下执行 `next build`，确认构建成功。
-3. 在未设置 `DATABASE_URL` 的前提下启动生产服务，确认关键页面/API 不因缺数据库直接崩溃。
+3. 在未设置 `DATABASE_URL`、且 `ZIWEI_PERSISTENCE_MODE=memory` 或未设置模式的前提下启动生产服务，确认关键页面/API 不因缺数据库直接崩溃。
 4. 检查运行时持久化策略：无库时默认 `memory`，有库时默认 Prisma，显式 `prisma` 且无库时报错。
+5. 重点 smoke 验证以下路径：
+   - `/`
+   - `/quiz`
+   - `/chart`
+   - 提交命盘输入的 server action 本身可执行
+   - 已知依赖跨请求 session 的 `/result/[sessionId]`、`/share/[sessionId]`、`/api/share-card/[sessionId]` 在无数据库模式下按退化预期表现
 
 ## 上线后的 Vercel 操作
 
 本次上线后的 Vercel 要求：
 
 - 暂时不配置 `DATABASE_URL`。
-- 直接重新触发部署。
+- 不要保留 `ZIWEI_PERSISTENCE_MODE=prisma`。
+- 推荐显式设置 `ZIWEI_PERSISTENCE_MODE=memory` 后再触发部署；如果不显式设置，也必须确认该变量未被历史配置为 `prisma`。
+- 在上述环境状态下重新触发部署。
 
 后续启用数据库时：
 
-1. 配置 `DATABASE_URL`。
-2. 如需显式控制，再设置 `ZIWEI_PERSISTENCE_MODE=prisma`。
-3. 手动执行 Prisma migration。
+1. 先准备并验证目标数据库。
+2. 先对目标数据库手动执行 Prisma migration。
+3. 确认迁移完成后，再在 Vercel 配置 `DATABASE_URL`。
+4. 如需显式控制，再设置 `ZIWEI_PERSISTENCE_MODE=prisma`。
+5. 重新部署并验证 Prisma 路径。
 
 ## 风险
 
