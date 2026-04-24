@@ -41,36 +41,56 @@ Override with `POSTGRES_BIN_DIR=/your/path` if needed.
 
 The repo is prepared for Vercel deployment.
 
-### Required production env
+### Recommended first production deploy (database-free)
 
-- `ZIWEI_PERSISTENCE_MODE=prisma`
+- Set `ZIWEI_PERSISTENCE_MODE=memory`
+- Do not set `DATABASE_URL`
+- Set `NEXT_PUBLIC_SITE_URL=https://<your production domain>`
+
+This mode is deployable on Vercel without Postgres, but cross-request result/share session reads are not guaranteed to persist across instances or redeploys.
+
+### Persistent production env (later, after Postgres is ready)
+
 - `DATABASE_URL=<your managed postgres connection string>`
 - `NEXT_PUBLIC_SITE_URL=https://<your production domain>`
+
+`ZIWEI_PERSISTENCE_MODE=prisma` is optional once `DATABASE_URL` is present. Use it only if you want to force Prisma mode explicitly.
 
 ### Vercel path
 
 1. Authenticate and link the project:
    - `npx vercel login`
    - `npx vercel link`
-2. Add production env values:
+2. For the first no-database rollout, add production env values:
    - `npx vercel env add ZIWEI_PERSISTENCE_MODE production`
-   - `npx vercel env add DATABASE_URL production`
+   - use value `memory`
    - `npx vercel env add NEXT_PUBLIC_SITE_URL production`
 3. Deploy:
    - `npx vercel --prod`
 
+### Re-enable Prisma later
+
+1. Prepare the target Postgres instance.
+2. Run Prisma migration against the target database manually:
+   - `DATABASE_URL=<your managed postgres connection string> npx prisma migrate deploy`
+3. Add or update production env values:
+   - `npx vercel env add ZIWEI_PERSISTENCE_MODE production`
+   - optional value `prisma`
+   - `npx vercel env add DATABASE_URL production`
+   - `npx vercel env add NEXT_PUBLIC_SITE_URL production`
+4. Deploy:
+   - `npx vercel --prod`
+
 `vercel.json` is configured so Vercel build will automatically run:
 
-- `npx prisma migrate deploy`
-- `npx prisma generate`
 - `next build`
 
-This keeps the MVP deployment path aligned with the persisted Prisma/Postgres production contract.
+This keeps the initial Vercel deploy path independent from database availability.
 
 ## Persistence modes
 
-- `prisma`: default for local development and production. Result/share/analytics read from persisted sessions and events.
-- `memory`: used by the test harness so unit/integration tests can run without a live Postgres instance.
+- `prisma`: active when `DATABASE_URL` exists, or when explicitly forced. Result/share/analytics read from persisted sessions and events.
+- `memory`: active in tests, and the recommended mode for the first Vercel rollout without Postgres.
 
 ## Prisma status
 

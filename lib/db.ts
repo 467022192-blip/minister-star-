@@ -13,7 +13,11 @@ export function getPersistenceMode(): PersistenceMode {
     return configuredMode
   }
 
-  return process.env.NODE_ENV === 'test' ? 'memory' : 'prisma'
+  if (process.env.NODE_ENV === 'test') {
+    return 'memory'
+  }
+
+  return process.env.DATABASE_URL ? 'prisma' : 'memory'
 }
 
 export function getDb() {
