@@ -1,0 +1,523 @@
+{
+  "id": "ziwei-rule-basis-v1",
+  "version": "v1",
+  "multiSchoolCompatible": false,
+  "birthplaceGranularity": "city",
+  "timezoneStrategy": "mainland-city-normalization",
+  "palaceSequence": [
+    "命宫",
+    "兄弟宫",
+    "夫妻宫",
+    "子女宫",
+    "财帛宫",
+    "疾厄宫",
+    "迁移宫",
+    "仆役宫",
+    "官禄宫",
+    "田宅宫",
+    "福德宫",
+    "父母宫"
+  ],
+  "transformationSupportStars": {
+    "化禄": "禄存",
+    "化科": "文曲",
+    "化权": "武曲"
+  },
+  "palaceDescriptorCatalog": {
+    "命宫": { "label": "自我定盘", "summary": "先回到自我定位、表达方式与人格底色" },
+    "兄弟宫": { "label": "协同结构", "summary": "先看同频合作、同伴反馈与关系排序" },
+    "夫妻宫": { "label": "亲密镜像", "summary": "先通过亲密关系与承诺接口理解自己" },
+    "子女宫": { "label": "创造输出", "summary": "先看表达欲、作品感与投放后的反馈" },
+    "财帛宫": { "label": "资源调度", "summary": "先关注资源分配、价值回收与现实安全感" },
+    "疾厄宫": { "label": "内耗修正", "summary": "先从身体感受、压力阈值与修复能力切入" },
+    "迁移宫": { "label": "外部场域", "summary": "先通过环境变化、他人目光与位置转换来确认方向" },
+    "仆役宫": { "label": "协作网络", "summary": "先从团队接口、合作节奏与支持系统判断机会" },
+    "官禄宫": { "label": "目标推进", "summary": "先围绕目标、职责与职业进阶去组织行动" },
+    "田宅宫": { "label": "稳定基底", "summary": "先关心边界、空间归属与长期安置" },
+    "福德宫": { "label": "内在蓄能", "summary": "先回到情绪储备、精神安稳与内在秩序" },
+    "父母宫": { "label": "规则承接", "summary": "先参考标准、权威与既有框架来安排节奏" }
+  },
+  "transformationDescriptorCatalog": {
+    "化禄": { "label": "资源流入", "summary": "更容易通过关系、机会与可承接的接口靠近你" },
+    "化科": { "label": "理解沉淀", "summary": "更适合先建立认知、方法和可解释性，再放大结果" },
+    "化权": { "label": "掌控推进", "summary": "更需要明确权责、节奏和目标，事情才会真正往前走" }
+  },
+  "chartRules": [
+    {
+      "id": "chart-rule-life-palace-zi",
+      "sourceRef": "internal:basis-v1:life-zi",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "zi" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "命宫"
+    },
+    {
+      "id": "chart-rule-life-palace-chou",
+      "sourceRef": "internal:basis-v1:life-chou",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "chou" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "兄弟宫"
+    },
+    {
+      "id": "chart-rule-life-palace-yin",
+      "sourceRef": "internal:basis-v1:life-yin",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "yin" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "子女宫"
+    },
+    {
+      "id": "chart-rule-life-palace-mao",
+      "sourceRef": "internal:basis-v1:life-mao",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "mao" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "财帛宫"
+    },
+    {
+      "id": "chart-rule-life-palace-chen",
+      "sourceRef": "internal:basis-v1:life-chen",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "chen" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "疾厄宫"
+    },
+    {
+      "id": "chart-rule-life-palace-si",
+      "sourceRef": "internal:basis-v1:life-si",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "si" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "迁移宫"
+    },
+    {
+      "id": "chart-rule-life-palace-wu",
+      "sourceRef": "internal:basis-v1:life-wu",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "wu" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "仆役宫"
+    },
+    {
+      "id": "chart-rule-life-palace-wei",
+      "sourceRef": "internal:basis-v1:life-wei",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "wei" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "官禄宫"
+    },
+    {
+      "id": "chart-rule-life-palace-shen",
+      "sourceRef": "internal:basis-v1:life-shen",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "shen" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "田宅宫"
+    },
+    {
+      "id": "chart-rule-life-palace-you",
+      "sourceRef": "internal:basis-v1:life-you",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "you" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "福德宫"
+    },
+    {
+      "id": "chart-rule-life-palace-xu",
+      "sourceRef": "internal:basis-v1:life-xu",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "xu" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "父母宫"
+    },
+    {
+      "id": "chart-rule-life-palace-hai",
+      "sourceRef": "internal:basis-v1:life-hai",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "hai" }],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "lifePalace",
+      "outputValue": "夫妻宫"
+    },
+    {
+      "id": "chart-rule-body-palace-wei-override",
+      "sourceRef": "internal:basis-v1:body-wei",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "wei" }],
+      "priority": 110,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "bodyPalace",
+      "outputValue": "财帛宫"
+    },
+    {
+      "id": "chart-rule-body-palace-solar",
+      "sourceRef": "internal:basis-v1:body-solar",
+      "triggerConditions": [{ "field": "calendarType", "operator": "equals", "value": "solar" }],
+      "priority": 90,
+      "conflictPolicy": "first_match",
+      "outputKey": "bodyPalace",
+      "outputValue": "命宫"
+    },
+    {
+      "id": "chart-rule-body-palace-lunar",
+      "sourceRef": "internal:basis-v1:body-lunar",
+      "triggerConditions": [{ "field": "calendarType", "operator": "equals", "value": "lunar" }],
+      "priority": 90,
+      "conflictPolicy": "first_match",
+      "outputKey": "bodyPalace",
+      "outputValue": "福德宫"
+    },
+    {
+      "id": "chart-rule-primary-stars-si",
+      "sourceRef": "internal:basis-v1:stars-si",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "si" }],
+      "priority": 110,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "primaryStars",
+      "outputValue": ["紫微", "天相"]
+    },
+    {
+      "id": "chart-rule-primary-stars-hai",
+      "sourceRef": "internal:basis-v1:stars-hai",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "hai" }],
+      "priority": 110,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "primaryStars",
+      "outputValue": ["太阴"]
+    },
+    {
+      "id": "chart-rule-primary-stars-wei",
+      "sourceRef": "internal:basis-v1:stars-wei",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "wei" }],
+      "priority": 110,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "primaryStars",
+      "outputValue": ["天府"]
+    },
+    {
+      "id": "chart-rule-primary-stars-solar-default",
+      "sourceRef": "internal:basis-v1:stars-solar-default",
+      "triggerConditions": [{ "field": "calendarType", "operator": "equals", "value": "solar" }],
+      "priority": 80,
+      "conflictPolicy": "first_match",
+      "outputKey": "primaryStars",
+      "outputValue": ["紫微"]
+    },
+    {
+      "id": "chart-rule-primary-stars-lunar-default",
+      "sourceRef": "internal:basis-v1:stars-lunar-default",
+      "triggerConditions": [{ "field": "calendarType", "operator": "equals", "value": "lunar" }],
+      "priority": 80,
+      "conflictPolicy": "first_match",
+      "outputKey": "primaryStars",
+      "outputValue": ["太阴"]
+    },
+    {
+      "id": "chart-rule-transformation-wei",
+      "sourceRef": "internal:basis-v1:transform-wei",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "wei" }],
+      "priority": 120,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "transformationSet",
+      "outputValue": ["化权"]
+    },
+    {
+      "id": "chart-rule-transformation-female-si",
+      "sourceRef": "internal:basis-v1:transform-female-si",
+      "triggerConditions": [
+        { "field": "gender", "operator": "equals", "value": "female" },
+        { "field": "timeBranch", "operator": "equals", "value": "si" }
+      ],
+      "priority": 110,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "transformationSet",
+      "outputValue": ["化禄"]
+    },
+    {
+      "id": "chart-rule-transformation-male-lunar",
+      "sourceRef": "internal:basis-v1:transform-male-lunar",
+      "triggerConditions": [
+        { "field": "gender", "operator": "equals", "value": "male" },
+        { "field": "calendarType", "operator": "equals", "value": "lunar" }
+      ],
+      "priority": 100,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "transformationSet",
+      "outputValue": ["化科"]
+    },
+    {
+      "id": "chart-rule-transformation-female-default",
+      "sourceRef": "internal:basis-v1:transform-female-default",
+      "triggerConditions": [{ "field": "gender", "operator": "equals", "value": "female" }],
+      "priority": 70,
+      "conflictPolicy": "first_match",
+      "outputKey": "transformationSet",
+      "outputValue": ["化禄"]
+    },
+    {
+      "id": "chart-rule-transformation-male-default",
+      "sourceRef": "internal:basis-v1:transform-male-default",
+      "triggerConditions": [{ "field": "gender", "operator": "equals", "value": "male" }],
+      "priority": 70,
+      "conflictPolicy": "first_match",
+      "outputKey": "transformationSet",
+      "outputValue": ["化科"]
+    },
+    {
+      "id": "chart-rule-focus-tone-si",
+      "sourceRef": "internal:basis-v1:focus-tone-si",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "si" }],
+      "priority": 120,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "focusTone",
+      "outputValue": "关系映射"
+    },
+    {
+      "id": "chart-rule-focus-tone-hai",
+      "sourceRef": "internal:basis-v1:focus-tone-hai",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "hai" }],
+      "priority": 120,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "focusTone",
+      "outputValue": "情感沉淀"
+    },
+    {
+      "id": "chart-rule-focus-tone-wei",
+      "sourceRef": "internal:basis-v1:focus-tone-wei",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "wei" }],
+      "priority": 120,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "focusTone",
+      "outputValue": "目标推进"
+    },
+    {
+      "id": "chart-rule-focus-tone-solar-default",
+      "sourceRef": "internal:basis-v1:focus-tone-solar-default",
+      "triggerConditions": [{ "field": "calendarType", "operator": "equals", "value": "solar" }],
+      "priority": 70,
+      "conflictPolicy": "first_match",
+      "outputKey": "focusTone",
+      "outputValue": "结构定盘"
+    },
+    {
+      "id": "chart-rule-focus-tone-lunar-default",
+      "sourceRef": "internal:basis-v1:focus-tone-lunar-default",
+      "triggerConditions": [{ "field": "calendarType", "operator": "equals", "value": "lunar" }],
+      "priority": 70,
+      "conflictPolicy": "first_match",
+      "outputKey": "focusTone",
+      "outputValue": "感受定盘"
+    },
+    {
+      "id": "chart-rule-focus-palaces-si",
+      "sourceRef": "internal:basis-v1:focus-palaces-si",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "si" }],
+      "priority": 120,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "focusPalaces",
+      "outputValue": ["迁移宫", "命宫", "官禄宫"]
+    },
+    {
+      "id": "chart-rule-focus-palaces-hai",
+      "sourceRef": "internal:basis-v1:focus-palaces-hai",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "hai" }],
+      "priority": 120,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "focusPalaces",
+      "outputValue": ["夫妻宫", "福德宫", "官禄宫"]
+    },
+    {
+      "id": "chart-rule-focus-palaces-wei",
+      "sourceRef": "internal:basis-v1:focus-palaces-wei",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "wei" }],
+      "priority": 120,
+      "conflictPolicy": "highest_priority_wins",
+      "outputKey": "focusPalaces",
+      "outputValue": ["官禄宫", "财帛宫", "迁移宫"]
+    },
+    {
+      "id": "chart-rule-focus-palaces-solar-default",
+      "sourceRef": "internal:basis-v1:focus-palaces-solar-default",
+      "triggerConditions": [{ "field": "calendarType", "operator": "equals", "value": "solar" }],
+      "priority": 70,
+      "conflictPolicy": "first_match",
+      "outputKey": "focusPalaces",
+      "outputValue": ["命宫", "官禄宫", "财帛宫"]
+    },
+    {
+      "id": "chart-rule-focus-palaces-lunar-default",
+      "sourceRef": "internal:basis-v1:focus-palaces-lunar-default",
+      "triggerConditions": [{ "field": "calendarType", "operator": "equals", "value": "lunar" }],
+      "priority": 70,
+      "conflictPolicy": "first_match",
+      "outputKey": "focusPalaces",
+      "outputValue": ["命宫", "福德宫", "夫妻宫"]
+    }
+  ],
+  "interpretationRules": [
+    {
+      "id": "interp-summary-career-driven",
+      "sourceRef": "internal:basis-v1:summary-career",
+      "topic": "summary",
+      "triggerConditions": [{ "field": "lifePalace", "operator": "equals", "value": "官禄宫" }],
+      "priority": 120,
+      "tags": ["摘要", "目标推进"],
+      "templateId": "summary-career-template"
+    },
+    {
+      "id": "interp-summary-relational",
+      "sourceRef": "internal:basis-v1:summary-relational",
+      "topic": "summary",
+      "triggerConditions": [{ "field": "lifePalace", "operator": "equals", "value": "迁移宫" }],
+      "priority": 110,
+      "tags": ["摘要", "关系联动"],
+      "templateId": "summary-relational-template"
+    },
+    {
+      "id": "interp-summary-default",
+      "sourceRef": "internal:basis-v1:summary-default",
+      "topic": "summary",
+      "triggerConditions": [{ "field": "gender", "operator": "includes", "value": ["female", "male"] }],
+      "priority": 10,
+      "tags": ["摘要", "总览"],
+      "templateId": "summary-default-template"
+    },
+    {
+      "id": "interp-personality-si",
+      "sourceRef": "internal:basis-v1:interp-1",
+      "topic": "personality",
+      "triggerConditions": [{ "field": "timeBranch", "operator": "equals", "value": "si" }],
+      "priority": 100,
+      "tags": ["人格", "天赋"],
+      "templateId": "personality-si-template"
+    },
+    {
+      "id": "interp-personality-default",
+      "sourceRef": "internal:basis-v1:interp-personality-default",
+      "topic": "personality",
+      "triggerConditions": [{ "field": "gender", "operator": "includes", "value": ["female", "male"] }],
+      "priority": 10,
+      "tags": ["人格", "天赋"],
+      "templateId": "personality-default-template"
+    },
+    {
+      "id": "interp-relationship-lunar",
+      "sourceRef": "internal:basis-v1:interp-2",
+      "topic": "relationship",
+      "triggerConditions": [{ "field": "calendarType", "operator": "equals", "value": "lunar" }],
+      "priority": 95,
+      "tags": ["关系", "慢热"],
+      "templateId": "relationship-lunar-template"
+    },
+    {
+      "id": "interp-relationship-default",
+      "sourceRef": "internal:basis-v1:interp-relationship-default",
+      "topic": "relationship",
+      "triggerConditions": [{ "field": "gender", "operator": "includes", "value": ["female", "male"] }],
+      "priority": 10,
+      "tags": ["关系", "互动"],
+      "templateId": "relationship-default-template"
+    },
+    {
+      "id": "interp-career-quan",
+      "sourceRef": "internal:basis-v1:interp-career-quan",
+      "topic": "careerWealth",
+      "triggerConditions": [{ "field": "transformationSet", "operator": "includes", "value": ["化权"] }],
+      "priority": 110,
+      "tags": ["事业", "掌控"],
+      "templateId": "career-quan-template"
+    },
+    {
+      "id": "interp-career-solar",
+      "sourceRef": "internal:basis-v1:interp-3",
+      "topic": "careerWealth",
+      "triggerConditions": [{ "field": "calendarType", "operator": "equals", "value": "solar" }],
+      "priority": 95,
+      "tags": ["事业", "节奏"],
+      "templateId": "career-solar-template"
+    },
+    {
+      "id": "interp-career-default",
+      "sourceRef": "internal:basis-v1:interp-career-default",
+      "topic": "careerWealth",
+      "triggerConditions": [{ "field": "gender", "operator": "includes", "value": ["female", "male"] }],
+      "priority": 10,
+      "tags": ["事业", "周期"],
+      "templateId": "career-default-template"
+    }
+  ],
+  "templateCatalog": {
+    "summary-relational-template": {
+      "title": "你的核心气质更偏向关系与自我理解的联动",
+      "tags": ["人格优先", "关系承接", "真实排盘入口"]
+    },
+    "summary-career-template": {
+      "title": "你的驱动力更偏向目标推进",
+      "tags": ["事业主轴", "节奏先行", "真实排盘入口"]
+    },
+    "summary-default-template": {
+      "title": "你的命盘重心更偏向先定结构，再看关系与节奏",
+      "tags": ["人格优先", "结构感", "真实排盘入口"]
+    },
+    "personality-si-template": {
+      "title": "人格与天赋",
+      "blocks": [
+        "命宫焦点落在{{lifePalace}}，说明你理解自我时，会先感受外部位置变化带来的推动，再决定如何安放自己。",
+        "主星组合 {{primaryStars}} 让你在表达方式上更在意秩序、分寸与可持续节奏。"
+      ]
+    },
+    "personality-default-template": {
+      "title": "人格与天赋",
+      "blocks": [
+        "命宫落在{{lifePalace}}，说明你的天赋更容易在对应的人生议题里被看见。",
+        "当前盘面里，{{primaryStars}} 会让你更在意先建立结构，再决定如何稳定输出。"
+      ]
+    },
+    "relationship-lunar-template": {
+      "title": "感情模式",
+      "blocks": [
+        "身宫落在{{bodyPalace}}，且输入来自农历链路，这通常对应更强的内在感受优先级。",
+        "你在关系里往往会先确认安全感，再决定是否把真实需要持续表达出来。"
+      ]
+    },
+    "relationship-default-template": {
+      "title": "感情模式",
+      "blocks": [
+        "你的关系判断更看重互动中的节奏感与边界是否清晰。",
+        "如果对方无法跟上你对{{lifePalace}}议题的关注，你会更早进入观察或保留状态。"
+      ]
+    },
+    "career-quan-template": {
+      "title": "事业与财运",
+      "blocks": [
+        "当前变化信号以{{transformationSet}}为主，这意味着你在事业上更需要掌控感、目标感与明确节奏。",
+        "当关键资源集中到{{lifePalace}}与{{bodyPalace}}这条轴线时，你更容易进入上升状态。"
+      ]
+    },
+    "career-solar-template": {
+      "title": "事业与财运",
+      "blocks": [
+        "阳历输入更适合先看现实结构，因此你的事业/财运判断要先看长期节奏，而不是短期波动。",
+        "{{transformationSet}} 提示你需要把资源投向真正能形成复利的位置。"
+      ]
+    },
+    "career-default-template": {
+      "title": "事业与财运",
+      "blocks": [
+        "你的事业与财运更适合以阶段性积累来判断，而不是只看一次结果。",
+        "盘面里值得持续观察的是 {{lifePalace}} 与 {{bodyPalace}} 之间的资源调度关系。"
+      ]
+    }
+  }
+}

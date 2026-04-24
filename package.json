@@ -1,0 +1,43 @@
+{
+  "name": "ziwei-growth-site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:local:start": "bash scripts/local-postgres-app.sh",
+    "db:migrate": "npx prisma migrate deploy",
+    "db:seed:sample": "node scripts/seed-prisma-sample.mjs",
+    "data:cities:update": "node scripts/update-cn-cities.mjs",
+    "smoke:local": "bash scripts/smoke-local-stack.sh",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "verify:local": "npm run test:unit && npm run test:e2e && npm run build && npm run smoke:local"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "next": "^15.3.1",
+    "prisma": "^6.6.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.21",
+    "jsdom": "^26.1.0",
+    "playwright": "^1.52.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.3"
+  }
+}
