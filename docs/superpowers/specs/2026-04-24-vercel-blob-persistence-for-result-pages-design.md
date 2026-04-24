@@ -140,10 +140,25 @@ type PersistenceMode = 'memory' | 'prisma' | 'blob'
 
 本次只将**跨请求必须读取的 session 文档**写入 Blob，不额外增加二级索引、列表查询或后台同步任务。
 
+所有 session JSON 一律使用 **private blob**，不允许以 public blob 形式暴露。原因是这些数据可能包含出生信息、计算结果和可枚举的业务 sessionId，不应通过 Blob 公网 URL 直接访问。
+
 存储 key 约定如下：
 
 - `quiz-sessions/<sessionId>.json`
 - `chart-sessions/<sessionId>.json`
+
+这两个 pathname 必须是**确定性的固定 key**，不允许加随机后缀。也就是说，Blob SDK 调用中需要显式保证等价于：
+
+- `pathname = quiz-sessions/<sessionId>.json` 或 `chart-sessions/<sessionId>.json`
+- `addRandomSuffix = false`
+- 对需要覆盖更新的写入，使用等价于 `allowOverwrite = true` 的策略
+
+其中：
+
+- quiz session 创建时写入一次，不需要版本分叉
+- chart session 会经历 `draft -> computed / failed` 的原地更新，因此实现必须支持**同 key 覆盖写**
+
+为避免规划阶段误解，本次设计明确要求：chart session 的后续更新必须继续写回同一个 pathname，而不是生成新对象版本后再做查找拼接。
 
 每个对象存储当前 repository 已定义的数据结构 JSON：
 
@@ -165,7 +180,16 @@ type PersistenceMode = 'memory' | 'prisma' | 'blob'
 - 在读取时处理“对象不存在”
 - 对反序列化失败给出明确错误
 
+这个辅助层需要额外明确以下实现约束：
+
+1. 默认以 `access: 'private'` 读写 session blob。
+2. 读取时使用等价于 `useCache: false` 的策略，避免结果页在 `saveComputedResult()` 刚写完后仍从缓存中读到旧版本。
+3. 对需要更新的对象，支持同 key 覆盖写；规划与实现时必须显式处理 Blob SDK 的 overwrite 语义，而不是默认依赖随机路径或多版本并存。
+   - 具体到 chart session 的更新路径，应等价于对同一 pathname 执行 `put(..., { access: 'private', addRandomSuffix: false, allowOverwrite: true })`
+
 这个辅助层不应承载业务判断，不应知道 quiz/chart 的业务含义，只做“JSON object store”。
+
+结构合法性校验不放在 helper 层完成。helper 的职责只到“拿到合法 JSON 对象或抛出 JSON 读写错误”为止；quiz/chart 的字段完整性与业务 shape 校验由 repository 层负责。
 
 这样 repository 仍然是业务边界，Blob helper 只是存储适配层。
 
@@ -186,6 +210,8 @@ type PersistenceMode = 'memory' | 'prisma' | 'blob'
   - `saveQuizSession` 生成 `sessionId` 后，把 `{ id, answer }` 写入 `quiz-sessions/<id>.json`
   - `getQuizSessionById` 从对应 key 读取，存在则返回 `{ id, answer }`，不存在返回 `null`
 
+quiz session 在 Blob 模式下不做列表查询，也不做额外索引；单条文档的存在性完全由固定 pathname 决定。
+
 #### 4.2 `lib/repositories/chart-session-repo.ts`
 
 保留当前对外接口：
@@ -201,9 +227,11 @@ type PersistenceMode = 'memory' | 'prisma' | 'blob'
 - `memory`：保持现状
 - `blob`：
   - `createDraftChartSession` 生成 `ChartSessionRecord`，写入 `chart-sessions/<id>.json`
-  - `saveComputedResult` 读取已有对象，更新为 `computed` 后回写
-  - `markChartSessionFailed` 读取已有对象，更新为 `failed` 后回写
+  - `saveComputedResult` 读取已有对象，更新为 `computed` 后回写到同一 pathname
+  - `markChartSessionFailed` 读取已有对象，更新为 `failed` 后回写到同一 pathname
   - `getChartSessionById` 直接按 key 读取 JSON
+
+为了保证 planner 不会把它误做成“新对象 append”，这里再明确一次：`saveComputedResult` 和 `markChartSessionFailed` 的目标是**覆盖同一份 chart session 文档**。
 
 ### 5. 页面与数据流
 
@@ -258,7 +286,18 @@ type PersistenceMode = 'memory' | 'prisma' | 'blob'
 - 真实不存在的 key -> 返回 `null`
 - Blob 返回坏数据或反序列化失败 -> 记录明确错误，并按读取失败处理
 
+其中“坏数据”的定义由 repository 层决定：
+
+- helper 层只负责 JSON parse 是否成功
+- repository 层负责判断对象是否满足 quiz session / chart session 的最小字段要求
+
 结果页/分享页层面仍保留当前 `404` 语义，不新增“半成功页面”。
+
+### 6.4 范围外仓库保持现状
+
+本次 Blob 改造只覆盖 quiz session 与 chart session 两类仓库。
+
+例如 `analytics-repo` 这类不在本次线上问题根因中的持久化路径，不纳入本轮 Blob 改造范围，继续沿用当前非-prisma 分支行为。这样可以避免 implementation plan 把整个仓库所有持久化都一起改造，导致范围失控。
 
 ### 7. 测试与验证
 
@@ -272,7 +311,7 @@ type PersistenceMode = 'memory' | 'prisma' | 'blob'
 - Blob 辅助层
   - JSON 写入 / 读取成功
   - key 不存在返回 `null`
-  - 非法 JSON / 缺字段时触发明确失败
+  - 非法 JSON 时触发明确失败
 
 #### 7.2 Repository 测试
 
@@ -283,6 +322,10 @@ type PersistenceMode = 'memory' | 'prisma' | 'blob'
 - `createDraftChartSession` -> `markChartSessionFailed` -> `getChartSessionById`
 
 测试重点是：Blob 模式下跨调用仍能读回完整记录，而不依赖进程内 `Map`。
+
+另外需要覆盖 repository 的结构校验边界：
+
+- helper 返回的是合法 JSON，但字段不满足 quiz/chart session 最小 shape 时，repository 应按坏数据处理，而不是继续向页面返回不完整对象。
 
 #### 7.3 集成验证
 
