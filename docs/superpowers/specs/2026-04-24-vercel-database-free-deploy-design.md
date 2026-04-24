@@ -43,12 +43,14 @@
 
 ## 方案对比
 
-### 方案 A：默认无数据库部署，运行时自动降级到 memory（推荐）
+### 方案 A：默认无数据库部署，运行时按环境自动选择持久化方式（推荐）
 
 - 保留 Prisma 依赖与 schema。
 - 构建命令改成只执行 `next build`。
 - 运行时未配置 `DATABASE_URL` 时默认使用 `memory`。
-- 若显式设置 `ZIWEI_PERSISTENCE_MODE=prisma` 且有 `DATABASE_URL`，则使用 Prisma。
+- 运行时存在 `DATABASE_URL` 时默认使用 Prisma。
+- 若显式设置 `ZIWEI_PERSISTENCE_MODE=memory`，则强制使用 `memory`。
+- 若显式设置 `ZIWEI_PERSISTENCE_MODE=prisma` 但缺少 `DATABASE_URL`，则明确报错。
 
 优点：
 
@@ -85,7 +87,7 @@
 - 回接数据库成本高。
 - 改动破坏性强，不符合当前目标。
 
-结论：采用方案 A，并吸收一个约束：只有在显式要求 Prisma 且具备 `DATABASE_URL` 时才启用 Prisma；否则在无数据库环境默认走 `memory`。
+结论：采用方案 A。唯一启用规则如下：未显式配置模式时，运行时在存在 `DATABASE_URL` 时默认使用 Prisma，不存在 `DATABASE_URL` 时默认使用 `memory`；显式模式仅用于覆盖默认行为，其中显式 `prisma` 且无库时报错。
 
 ## 设计
 
@@ -99,6 +101,17 @@
 - 重新生成 `package-lock.json`，使 `resolved` 地址统一指向公网 npm registry，而不是 `bnpm.byted.org`。
 
 这样做的目的不是改变依赖版本，而是确保 Vercel 构建机可以稳定获取 tarball。
+
+### 1.1 安装阶段约束
+
+本次设计明确要求：`npm install` 必须在未配置 `DATABASE_URL` 的环境中也能通过。
+
+已验证的事实：
+
+- 在干净目录、移除 `.env` 且未设置 `DATABASE_URL` 的条件下，`npm install` 可成功完成。
+- 在同样条件下，`npx -y npm@10 install` 也可成功完成。
+
+因此，本次实现不需要额外增加“跳过 Prisma install-time generate”之类的特殊措施；当前阻塞安装的主要问题是锁文件中的内网 registry，而不是 Prisma 在 install 阶段强依赖数据库。
 
 ### 2. Vercel 构建策略
 
@@ -155,7 +168,7 @@
 README 的部署说明需要与新现实保持一致：
 
 - 当前支持“无数据库先部署”。
-- 若需启用持久化，再配置 `DATABASE_URL` 与 `ZIWEI_PERSISTENCE_MODE=prisma`。
+- 若需启用持久化，默认只要配置 `DATABASE_URL` 即可自动走 Prisma；若需要强制控制，也可以额外设置 `ZIWEI_PERSISTENCE_MODE`。
 - Prisma 迁移从“每次部署自动执行”改为“接入数据库时手动执行”。
 
 ## 错误处理
@@ -180,7 +193,7 @@ README 的部署说明需要与新现实保持一致：
 1. 在干净环境中重新安装依赖，确认 `package-lock.json` 不再引用 `bnpm.byted.org`。
 2. 在未设置 `DATABASE_URL` 的前提下执行 `next build`，确认构建成功。
 3. 在未设置 `DATABASE_URL` 的前提下启动生产服务，确认关键页面/API 不因缺数据库直接崩溃。
-4. 检查运行时持久化策略：无库时默认 `memory`，显式 `prisma` 且无库时报错。
+4. 检查运行时持久化策略：无库时默认 `memory`，有库时默认 Prisma，显式 `prisma` 且无库时报错。
 
 ## 上线后的 Vercel 操作
 
@@ -192,7 +205,7 @@ README 的部署说明需要与新现实保持一致：
 后续启用数据库时：
 
 1. 配置 `DATABASE_URL`。
-2. 设置 `ZIWEI_PERSISTENCE_MODE=prisma`（如果需要显式控制）。
+2. 如需显式控制，再设置 `ZIWEI_PERSISTENCE_MODE=prisma`。
 3. 手动执行 Prisma migration。
 
 ## 风险
@@ -215,5 +228,5 @@ README 的部署说明需要与新现实保持一致：
 
 1. 将依赖锁文件切回公网 npm registry。
 2. 移除 Vercel 构建期对 Prisma migration/generate 的强依赖。
-3. 将无 `DATABASE_URL` 环境下的默认持久化模式改为 `memory`。
+3. 将默认持久化模式改为环境感知：无 `DATABASE_URL` 时用 `memory`，有 `DATABASE_URL` 时用 Prisma。
 4. 保留 Prisma 能力，作为后续接库路径。
