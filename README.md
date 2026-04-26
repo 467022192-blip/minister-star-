@@ -6,10 +6,13 @@ A mainland Chinese Ziwei Dou Shu content growth website built with Next.js.
 
 1. Install dependencies: `npm install`
 2. Copy `.env.example` to `.env`
-3. Make sure `.env` contains `ZIWEI_PERSISTENCE_MODE=prisma`
-4. Start Postgres and make sure `DATABASE_URL` is reachable
-5. Generate Prisma client: `npx prisma generate`
-6. Apply the initial schema when Postgres is available: `npx prisma migrate dev`
+3. Choose one persistence mode in `.env`:
+   - `ZIWEI_PERSISTENCE_MODE=prisma` + `DATABASE_URL=...` (full local DB mode)
+   - `ZIWEI_PERSISTENCE_MODE=blob` + `BLOB_READ_WRITE_TOKEN=...` (no-DB but cross-request persistent sessions)
+   - `ZIWEI_PERSISTENCE_MODE=memory` (ephemeral fallback)
+4. If using Prisma mode, start Postgres and make sure `DATABASE_URL` is reachable
+5. If using Prisma mode, generate Prisma client: `npx prisma generate`
+6. If using Prisma mode, apply the initial schema: `npx prisma migrate dev`
 7. Run `npm run dev`
 
 ### Mac + Postgres.app quick path
@@ -43,18 +46,23 @@ The repo is prepared for Vercel deployment.
 
 ### Recommended first production deploy (database-free)
 
-- Set `ZIWEI_PERSISTENCE_MODE=memory`
+- Set `ZIWEI_PERSISTENCE_MODE=blob`
+- Set `BLOB_READ_WRITE_TOKEN=<your vercel blob read-write token>`
 - Do not set `DATABASE_URL`
 - Set `NEXT_PUBLIC_SITE_URL=https://<your production domain>`
 
-This mode is deployable on Vercel without Postgres, but cross-request result/share session reads are not guaranteed to persist across instances or redeploys.
+This mode is deployable on Vercel without Postgres and persists quiz/chart sessions in Blob, so `/result/[sessionId]`, `/share/[sessionId]`, and `/api/share-card/[sessionId]` can read across requests and instances.
+
+### Memory mode note
+
+`memory` is kept as test/local fallback. It is not recommended for production because in-memory sessions are not shared across Vercel instances.
 
 ### Persistent production env (later, after Postgres is ready)
 
 - `DATABASE_URL=<your managed postgres connection string>`
 - `NEXT_PUBLIC_SITE_URL=https://<your production domain>`
 
-`ZIWEI_PERSISTENCE_MODE=prisma` is optional once `DATABASE_URL` is present. Use it only if you want to force Prisma mode explicitly.
+`ZIWEI_PERSISTENCE_MODE=prisma` is optional once `DATABASE_URL` is present. Use it only when you want to force Prisma mode explicitly.
 
 ### Vercel path
 
@@ -63,7 +71,8 @@ This mode is deployable on Vercel without Postgres, but cross-request result/sha
    - `npx vercel link`
 2. For the first no-database rollout, add production env values:
    - `npx vercel env add ZIWEI_PERSISTENCE_MODE production`
-   - use value `memory`
+   - use value `blob`
+   - `npx vercel env add BLOB_READ_WRITE_TOKEN production`
    - `npx vercel env add NEXT_PUBLIC_SITE_URL production`
 3. Deploy:
    - `npx vercel --prod`
@@ -89,8 +98,17 @@ This keeps the initial Vercel deploy path independent from database availability
 
 ## Persistence modes
 
-- `prisma`: active when `DATABASE_URL` exists, or when explicitly forced. Result/share/analytics read from persisted sessions and events.
-- `memory`: active in tests, and the recommended mode for the first Vercel rollout without Postgres.
+- `memory`: default in tests, and fallback when no persistence env is available.
+- `prisma`: active when `DATABASE_URL` exists (outside tests), or when explicitly forced.
+- `blob`: active when `BLOB_READ_WRITE_TOKEN` exists and `DATABASE_URL` is absent (outside tests), or when explicitly forced.
+
+Automatic inference (when `ZIWEI_PERSISTENCE_MODE` is not set):
+- `NODE_ENV=test` -> `memory`
+- non-test with `DATABASE_URL` -> `prisma`
+- non-test with no `DATABASE_URL` and with `BLOB_READ_WRITE_TOKEN` -> `blob`
+- otherwise -> `memory`
+
+Note: this rollout only changes quiz/chart session persistence. Analytics persistence remains unchanged.
 
 ## Prisma status
 
