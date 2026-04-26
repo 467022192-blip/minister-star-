@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { Prisma } from '@prisma/client'
 import { isSupportedMainlandCityCode } from '@/lib/cities'
 import { getDb, getPersistenceMode } from '@/lib/db'
+import { getPrivateJson, putPrivateJson } from '@/lib/blob/session-store'
 import type { ChartInput, ChartInterpretation, CalculatedChart, NormalizedBirthInput } from '@/lib/ziwei/types'
 
 export type ChartSessionRecord = {
@@ -161,6 +162,11 @@ function mapChartSessionRecord(record: {
 }
 
 export async function getChartSessionById(sessionId: string) {
+  if (getPersistenceMode() === 'blob') {
+    const record = await getPrivateJson(`chart-sessions/${sessionId}.json`)
+    return isChartSessionRecord(record) ? record : null
+  }
+
   if (getPersistenceMode() === 'memory') {
     return chartSessionStore.get(sessionId) ?? null
   }
@@ -176,6 +182,18 @@ export async function createDraftChartSession(input: ChartInput) {
 
   if (!isSupportedMainlandCityCode(input.birthCityCode)) {
     throw new Error('birthCityCode must be a supported mainland city')
+  }
+
+  if (getPersistenceMode() === 'blob') {
+    const id = randomUUID()
+    const record: ChartSessionRecord = {
+      id,
+      status: 'draft',
+      rawInput: input,
+    }
+
+    await putPrivateJson(`chart-sessions/${id}.json`, record)
+    return record
   }
 
   if (getPersistenceMode() === 'prisma') {
@@ -206,6 +224,27 @@ export async function saveComputedResult(payload: {
   chart: CalculatedChart
   interpretation: ChartInterpretation
 }) {
+  if (getPersistenceMode() === 'blob') {
+    const record = await getPrivateJson(`chart-sessions/${payload.sessionId}.json`)
+
+    if (!isChartSessionRecord(record)) {
+      throw new Error('session not found')
+    }
+
+    const updated: ChartSessionRecord = {
+      ...record,
+      status: 'computed',
+      normalizedInput: payload.normalized,
+      chartOutput: payload.chart,
+      interpretationOutput: payload.interpretation,
+      errorCode: undefined,
+      failureReason: undefined,
+    }
+
+    await putPrivateJson(`chart-sessions/${payload.sessionId}.json`, updated, { allowOverwrite: true })
+    return updated
+  }
+
   if (getPersistenceMode() === 'prisma') {
     const session = await getDb().chartSession.update({
       where: { id: payload.sessionId },
@@ -247,6 +286,24 @@ export async function markChartSessionFailed(payload: {
   errorCode: string
   failureReason: string
 }) {
+  if (getPersistenceMode() === 'blob') {
+    const record = await getPrivateJson(`chart-sessions/${payload.sessionId}.json`)
+
+    if (!isChartSessionRecord(record)) {
+      throw new Error('session not found')
+    }
+
+    const updated: ChartSessionRecord = {
+      ...record,
+      status: 'failed',
+      errorCode: payload.errorCode,
+      failureReason: payload.failureReason,
+    }
+
+    await putPrivateJson(`chart-sessions/${payload.sessionId}.json`, updated, { allowOverwrite: true })
+    return updated
+  }
+
   if (getPersistenceMode() === 'prisma') {
     const session = await getDb().chartSession.update({
       where: { id: payload.sessionId },
@@ -275,4 +332,122 @@ export async function markChartSessionFailed(payload: {
 
   chartSessionStore.set(payload.sessionId, updated)
   return updated
+}
+
+function isChartInput(value: unknown): value is ChartInput {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+
+  return (
+    typeof record.birthDate === 'string' &&
+    typeof record.birthTime === 'string' &&
+    (record.calendarType === 'solar' || record.calendarType === 'lunar') &&
+    (record.gender === 'female' || record.gender === 'male') &&
+    typeof record.birthCityCode === 'string'
+  )
+}
+
+function isChartOutputForShareCard(value: unknown): value is CalculatedChart {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+
+  if (
+    typeof record.ruleBasisId !== 'string' ||
+    typeof record.chartId !== 'string' ||
+    typeof record.lifePalace !== 'string' ||
+    typeof record.bodyPalace !== 'string' ||
+    !Array.isArray(record.primaryStars)
+  ) {
+    return false
+  }
+
+  if (record.structureSummary == null) {
+    return true
+  }
+
+  if (typeof record.structureSummary !== 'object') {
+    return false
+  }
+
+  const summary = record.structureSummary as Record<string, unknown>
+
+  return (
+    typeof summary.focusTone === 'string' &&
+    Array.isArray(summary.focusPalaces) &&
+    summary.focusPalaces.every((palace) => {
+      if (!palace || typeof palace !== 'object') {
+        return false
+      }
+
+      return typeof (palace as Record<string, unknown>).palaceName === 'string'
+    })
+  )
+}
+
+function isInterpretationOutputForResult(value: unknown): value is ChartInterpretation {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+
+  if (typeof record.summary !== 'object' || !record.summary) {
+    return false
+  }
+
+  const summary = record.summary as Record<string, unknown>
+  if (typeof summary.title !== 'string' || !Array.isArray(summary.tags)) {
+    return false
+  }
+
+  if (typeof record.sections !== 'object' || !record.sections) {
+    return false
+  }
+
+  const sections = record.sections as Record<string, unknown>
+  const personality = sections.personality as Record<string, unknown> | undefined
+  const relationship = sections.relationship as Record<string, unknown> | undefined
+  const careerWealth = sections.careerWealth as Record<string, unknown> | undefined
+
+  if (!personality || !relationship || !careerWealth) {
+    return false
+  }
+
+  return (
+    Array.isArray(personality.blocks) &&
+    Array.isArray(relationship.blocks) &&
+    Array.isArray(careerWealth.blocks)
+  )
+}
+
+function isChartSessionRecord(value: unknown): value is ChartSessionRecord {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+
+  if (typeof record.id !== 'string' || !isChartInput(record.rawInput)) {
+    return false
+  }
+
+  if (record.status === 'draft') {
+    return true
+  }
+
+  if (record.status === 'failed') {
+    return typeof record.errorCode === 'string' && typeof record.failureReason === 'string'
+  }
+
+  if (record.status === 'computed') {
+    return isChartOutputForShareCard(record.chartOutput) && isInterpretationOutputForResult(record.interpretationOutput)
+  }
+
+  return false
 }
