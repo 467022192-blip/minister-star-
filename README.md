@@ -116,6 +116,10 @@ Note: this rollout only changes quiz/chart session persistence. Analytics persis
 - Initial SQL migration has been generated at `prisma/migrations/20260424_init/migration.sql`.
 - Local Postgres migration and Prisma-path smoke verification have been completed.
 
+## Runbooks
+
+- Vercel Blob no-DB production rollout: `docs/runbooks/2026-04-26-vercel-blob-production-rollout.md`
+
 ## Current status
 
 This repository is being implemented from the approved design and implementation plan.
